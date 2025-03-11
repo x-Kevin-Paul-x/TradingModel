@@ -14,7 +14,7 @@ def main():
     
     # Initialize components
     data_processor = DataProcessor()
-    ml_model = MLModel()
+    model = MLModel(algorithm='xgboost')
     trading_bot = TradingBot(initial_capital=INITIAL_CAPITAL)
     visualizer = VisualizationUtils()
     
@@ -45,19 +45,19 @@ def main():
     
     # Train ML model
     print("\nTraining ML model...")
-    ml_model.train(
+    model.train(
         pd.DataFrame(X_train),
         y_train,
         pd.DataFrame(X_val),
         y_val
     )
-    
+
     # Get ML model predictions
     print("\nGenerating ML model predictions...")
-    test_predictions = ml_model.predict(pd.DataFrame(X_test))
+    test_predictions = model.predict(pd.DataFrame(X_test))
     
     # Initialize performance tracking for ML model
-    ml_model.performance_history = []
+    model.performance_history = []
     current_capital = INITIAL_CAPITAL
     
     # Simulate ML model trading
@@ -69,7 +69,7 @@ def main():
         features = pd.DataFrame(symbol_data[:-1])  # Exclude last day
         try:
             feature_data, _ = data_processor.prepare_features({symbol: features})
-            symbol_predictions = ml_model.predict(pd.DataFrame(feature_data))
+            symbol_predictions = model.predict(pd.DataFrame(feature_data))
             
             for i, prediction in enumerate(symbol_predictions):
                 price = symbol_data.iloc[i]['close']
@@ -80,7 +80,7 @@ def main():
                     profit = position_size * (next_price - price)
                     current_capital += profit
                 
-                ml_model.performance_history.append(current_capital)
+                model.performance_history.append(current_capital)
         except Exception as e:
             print(f"Error processing {symbol}: {str(e)}")
             continue
@@ -120,10 +120,10 @@ def main():
     # Create performance visualizations
     print("\nGenerating performance visualizations...")
     for symbol, data in test_data.items():
-        visualizer.create_performance_dashboard(ml_model, trading_bot, data)
+        visualizer.create_performance_dashboard(model, trading_bot, data)
     
     # Print final results
-    ml_final_return = (ml_model.performance_history[-1] - INITIAL_CAPITAL) / INITIAL_CAPITAL
+    ml_final_return = (model.performance_history[-1] - INITIAL_CAPITAL) / INITIAL_CAPITAL
     bot_metrics = trading_bot.get_performance_metrics()
     
     print("\nFinal Results:")
@@ -131,7 +131,7 @@ def main():
     print("ML Model Performance:")
     print(f"Total Return: {ml_final_return*100:.2f}%")
     print(f"Initial Capital: ${INITIAL_CAPITAL:.2f}")
-    print(f"Final Capital: ${ml_model.performance_history[-1]:.2f}")
+    print(f"Final Capital: ${model.performance_history[-1]:.2f}")
     
     print("\nTrading Bot Performance:")
     print(f"Total Return: {bot_metrics['total_return']*100:.2f}%")
