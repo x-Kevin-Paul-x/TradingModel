@@ -37,8 +37,8 @@ This project aims to develop and evaluate an algorithmic trading system capable 
 1.  **Clone the repository:**
 
     ```bash
-    git clone https://github.com/your-username/MEtrad.git  # Replace with your actual repository URL
-    cd MEtrad
+    git clone https://github.com/x-Kevin-Paul-x/TradingModel.git  
+    cd TradingModel
     ```
 
 2.  **Install dependencies:**
