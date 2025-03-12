@@ -1,135 +1,188 @@
-# MEtrad - Algorithmic Trading System
+# MEtrad - Advanced Algorithmic Trading System
 
-MEtrad is an algorithmic trading system that utilizes machine learning and technical analysis to generate trading signals and manage a portfolio of stocks. It leverages the Polygon.io API for historical market data, employs an XGBoost model for predictions, and implements various trading strategies with risk management features.
+MEtrad is a sophisticated algorithmic trading platform that combines machine learning with technical analysis to generate high-quality trading signals and effectively manage stock portfolios. The system leverages Polygon.io's market data API, employs an optimized XGBoost prediction model, and implements multiple trading strategies with robust risk management features.
 
 ## Table of Contents
-- [Project Description](#project-description)
-- [Features](#features)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [Strategies](#strategies)
-- [ML Model](#ml-model)
-- [Data](#data)
-- [Risk Management](#risk-management)
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+- [Using MEtrad](#using-metrad)
+- [Trading Strategies](#trading-strategies)
+- [Machine Learning Model](#machine-learning-model)
+- [Data Processing](#data-processing)
+- [Risk Management System](#risk-management-system)
+- [Performance Metrics](#performance-metrics)
 - [Contributing](#contributing)
-- [License](#license)
 
-## Project Description
-This project aims to develop and evaluate an algorithmic trading system capable of making profitable trades in the stock market. It combines machine learning techniques with technical analysis indicators to generate buy and sell signals. The system includes a trading bot that executes trades based on these signals and incorporates risk management strategies to protect the portfolio. The performance of the system is evaluated using metrics such as total return, Sharpe ratio, and maximum drawdown.
+## Overview
 
-## Features
+MEtrad is designed to help traders and investors make data-driven decisions in the stock market. By combining cutting-edge machine learning techniques with established technical analysis indicators, the system generates actionable buy and sell signals. The integrated trading bot executes these signals while implementing comprehensive risk management strategies to protect your portfolio. The system's performance is continuously evaluated using industry-standard metrics like total return, Sharpe ratio, and maximum drawdown.
 
-*   **Data Fetching:** Fetches historical stock data from the Polygon.io API.
-*   **Technical Analysis:** Calculates various technical indicators using the `ta` library.
-*   **Machine Learning:** Employs an XGBoost model for predicting stock price movements.
-*   **Trading Strategies:** Implements multiple trading strategies, including:
-    *   Moving Average Crossover
-    *   RSI (Relative Strength Index)
-    *   Price Momentum
-*   **Risk Management:** Includes features like stop-loss, take-profit, and position sizing.
-*   **Performance Evaluation:** Calculates metrics such as total return, Sharpe ratio, and maximum drawdown.
-*   **Visualization:** Generates performance dashboards for visual analysis.
-*   **Configurable:** Parameters like API keys, trading symbols, and strategy settings can be configured.
+## Key Features
 
-## Installation
+**Data & Analysis:**
+- **Real-time Data Integration:** Seamless fetching of historical and current stock data via Polygon.io API
+- **Comprehensive Technical Analysis:** Calculation of 15+ technical indicators using the `ta` library
+- **Advanced Feature Engineering:** Creation of custom predictive features for machine learning models
 
-1.  **Clone the repository:**
+**Trading Intelligence:**
+- **Machine Learning Prediction:** XGBoost model optimized for stock price movement prediction
+- **Multi-Strategy Framework:** Implementation of three distinct trading strategies:
+  - Moving Average Crossover with RSI and momentum filters
+  - Enhanced RSI with volume and trend confirmations
+  - Dynamic Price Momentum with volatility adaptation
+- **Backtesting Engine:** Thorough strategy evaluation against historical data
 
-    ```bash
-    git clone https://github.com/x-Kevin-Paul-x/TradingModel.git  
-    cd TradingModel
-    ```
+**Portfolio Management:**
+- **Intelligent Risk Management:** Stop-loss, take-profit, and position sizing
+- **Capital Preservation:** Maximum holdings limits and volume filters
+- **Performance Analytics:** Detailed metrics and visual performance dashboards
 
-2.  **Install dependencies:**
+**System Design:**
+- **Highly Configurable:** Customizable parameters for strategies and risk tolerance
+- **Modular Architecture:** Easily extendable for new strategies and features
+- **Visualization Tools:** Performance dashboards for intuitive analysis
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+## Getting Started
 
-## Configuration
+### Prerequisites
 
-1.  **Environment Variables:**
+- Python 3.8 or higher
+- Polygon.io API key
 
-    Create a `.env` file in the project root directory and add your Polygon.io API key:
+### Installation
 
-    ```
-    POLYGON_API_KEY=your_polygon_api_key
-    ```
-    Replace `your_polygon_api_key` with your actual API key. The `.env.example` file provides a template.
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/x-Kevin-Paul-x/MEtrad.git
+   cd MEtrad
+   ```
 
-2.  **Configuration File:**
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-    The `config.py` file contains various configuration parameters, including:
+### Configuration
 
-    *   `POLYGON_API_KEY`: Your Polygon.io API key (loaded from the `.env` file).
-    *   `TRAINING_START_DATE`, `TRAINING_END_DATE`, `TEST_END_DATE`: Date ranges for training and testing.
-    *   `TRADING_SYMBOLS`: List of stock symbols to trade.
-    *   `TIMEFRAME`: Timeframe for data (e.g., "1d" for daily).
-    *   `INITIAL_CAPITAL`: Initial trading capital.
-    *   `RANDOM_STATE`: Random seed for reproducibility.
-    *   `TEST_SIZE`, `VALIDATION_SIZE`: Data split ratios.
-    *   `STOP_LOSS_PCT`, `TAKE_PROFIT_PCT`, `MAX_POSITION_SIZE`: Risk management parameters.
-    *   `MIN_VOL_THRESHOLD`, `MIN_PROFIT_THRESHOLD`, `MAX_HOLDINGS`: Additional trading parameters.
+1. **Environment Variables:**
+   Create a `.env` file in the project root with your API credentials:
+   ```
+   POLYGON_API_KEY=your_polygon_api_key
+   ```
+   Use the provided `.env.example` as a template.
 
-    Adjust these parameters as needed for your trading strategy and risk tolerance.
+2. **Strategy Parameters:**
+   Modify the `config.py` file to adjust:
+   - Data ranges (`TRAINING_START_DATE`, `TRAINING_END_DATE`)
+   - Trading universe (`TRADING_SYMBOLS`)
+   - Capital allocation (`INITIAL_CAPITAL`)
+   - Risk parameters (`STOP_LOSS_PCT`, `TAKE_PROFIT_PCT`)
+   - Position sizing (`MAX_POSITION_SIZE`, `MAX_HOLDINGS`)
 
-## Usage
+## Using MEtrad
 
-To run the trading simulation, execute the `run.py` script:
+Run the trading simulation with a single command:
 
 ```bash
 python run.py
 ```
 
-This will:
+This initiates the complete workflow:
+1. Data acquisition and preprocessing
+2. Feature engineering and technical indicator calculation
+3. Model training and validation
+4. Strategy backtesting and comparison
+5. Performance visualization and reporting
 
-1.  Fetch historical data from Polygon.io.
-2.  Preprocess the data and add technical indicators.
-3.  Split the data into training, validation, and test sets.
-4.  Train the XGBoost ML model.
-5.  Simulate trading using the ML model's predictions.
-6.  Run the trading bot with different strategies (moving average, RSI, momentum).
-7.  Generate performance visualizations.
-8.  Print the final results, including performance metrics for both the ML model and the trading bot.
+Detailed results including total returns, Sharpe ratio, and win rates are provided at the end of the simulation.
 
-## Strategies
+## Trading Strategies
 
-The trading bot implements the following strategies:
+MEtrad implements three sophisticated trading strategies:
 
-*   **Moving Average Crossover:** Generates buy signals when the short-term moving average crosses above the long-term moving average and sell signals when the opposite occurs. It also incorporates RSI and momentum filters.
-*   **RSI (Relative Strength Index):** Uses RSI to identify overbought and oversold conditions, with additional confirmations based on volume, trend, and momentum.
-*   **Price Momentum:** Buys when momentum is positive and increasing, and sells when momentum is negative and decreasing.
+**Moving Average Crossover (Enhanced)**
+- Uses SMA20 and SMA50 crossovers as primary signals
+- Applies RSI filters to avoid false breakouts
+- Incorporates momentum confirmation for trade direction
+- Uses Bollinger Bands for additional entry/exit points
 
-## ML Model
+**RSI Strategy (Advanced)**
+- Dynamic RSI thresholds that adapt to market volatility
+- Volume confirmation requirements for trade execution
+- Trend-following and counter-trend modes for different market conditions
+- Multiple exit conditions for profit protection
 
-The machine learning model used for predictions is an XGBoost classifier (`XGBClassifier`). It is trained on historical data with various technical indicators as features. The model's hyperparameters are defined in `config.py` and can be tuned for optimal performance. The model is saved to the `models/saved` directory after training, along with the feature scaler and feature importance data.
+**Momentum Strategy**
+- Multi-timeframe momentum analysis (1-day, 5-day, 20-day)
+- Acceleration and deceleration measurements
+- Volume-weighted momentum calculation
+- Volatility normalization for consistent signal generation
 
-## Data
+## Machine Learning Model
 
-The project uses historical stock data from the [Polygon.io](https://polygon.io/) API. You will need a valid API key to fetch data. The `DataProcessor` class in `utils/data_processor.py` handles data fetching, preprocessing, and feature engineering. It includes a retry mechanism for handling API request failures and adds a wide range of technical indicators using the `ta` library.
+The XGBoost classifier model lies at the heart of MEtrad's predictive capabilities:
 
-## Risk Management
+- Feature-rich training on 15+ technical indicators
+- Automatic hyperparameter optimization
+- Feature importance analysis for model interpretability
+- SHAP value explanations for prediction transparency
+- Cross-validation for robust performance estimation
 
-The trading bot incorporates several risk management features:
+Models are saved after training, along with feature scalers and importance data.
 
-*   **Stop-Loss:** Automatically sells a position if the price falls below a certain percentage (defined by `STOP_LOSS_PCT`).
-*   **Take-Profit:** Automatically sells a position if the price reaches a certain profit target (defined by `TAKE_PROFIT_PCT`).
-*   **Position Sizing:** Calculates the position size based on the available capital and a maximum position size limit (defined by `MAX_POSITION_SIZE`).
-* **Maximum Holdings:** Limits the number of simultaneous positions (defined by `MAX_HOLDINGS`).
-* **Minimum Volume Threshold:** Avoids trading when volume is too low (defined by `MIN_VOL_THRESHOLD`).
-* **Minimum Profit Threshold:** Avoids trades with low expected profit (defined by `MIN_PROFIT_THRESHOLD`).
+## Data Processing
+
+MEtrad processes market data through several sophisticated stages:
+
+1. **Acquisition:** Fetching from Polygon.io with smart retry mechanisms
+2. **Cleaning:** Handling missing values and outliers
+3. **Feature Engineering:** Creating predictive technical indicators
+4. **Normalization:** Scaling features for optimal model performance
+5. **Splitting:** Creating appropriate train/validation/test datasets
+
+## Risk Management System
+
+MEtrad implements a multi-layered risk management approach:
+
+- **Position-Level Protection:**
+  - Stop-Loss orders (configurable percentage)
+  - Take-Profit targets (customizable risk/reward ratio)
+  - Trailing stops for trend-following strategies
+
+- **Portfolio-Level Protection:**
+  - Maximum position sizing (% of capital per position)
+  - Diversification rules (maximum holdings per sector)
+  - Capital allocation limits
+
+- **Market-Condition Filters:**
+  - Minimum volume requirements
+  - Volatility-based position sizing
+  - Expected return thresholds
+
+## Performance Metrics
+
+MEtrad evaluates trading performance using industry-standard metrics:
+
+- Total Return (%)
+- Sharpe Ratio
+- Maximum Drawdown
+- Win/Loss Ratio
+- Average Profit per Trade
+- Risk-Adjusted Return
 
 ## Contributing
 
-Contributions are welcome! If you'd like to contribute to this project, please follow these guidelines:
+Contributions are welcome! To contribute to MEtrad:
 
-1.  Fork the repository.
-2.  Create a new branch for your feature or bug fix.
-3.  Make your changes and commit them with clear and descriptive messages.
-4.  Push your branch to your forked repository.
-5.  Submit a pull request to the main repository.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to your branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## License
+Please ensure your code follows the project's style guidelines and includes appropriate tests.
 
-This project does not have a license file. Therefore, it is under exclusive copyright by default.
