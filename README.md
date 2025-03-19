@@ -57,8 +57,8 @@ MEtrad is designed to help traders and investors make data-driven decisions in t
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/x-Kevin-Paul-x/MEtrad.git
-   cd MEtrad
+   git clone https://github.com/x-Kevin-Paul-x/TradingModel.git
+   cd TradingModel
    ```
 
 2. **Install dependencies:**
