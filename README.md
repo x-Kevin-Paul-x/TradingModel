@@ -1,6 +1,6 @@
 # MEtrad - Advanced Algorithmic Trading System
 
-MEtrad is a sophisticated algorithmic trading platform that combines machine learning with technical analysis to generate high-quality trading signals and effectively manage stock portfolios. The system leverages Polygon.io's market data API, employs an optimized XGBoost prediction model, and implements multiple trading strategies with robust risk management features.
+MEtrad is a algorithmic trading simulation that combines machine learning with technical analysis to generate high-quality trading signals and effectively manage stock portfolios. The system leverages Polygon.io's market data API, employs an optimized XGBoost prediction model, and implements multiple trading strategies with robust risk management features.
 
 ## Table of Contents
 - [Overview](#overview)
