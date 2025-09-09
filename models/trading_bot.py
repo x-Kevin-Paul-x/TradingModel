@@ -5,10 +5,10 @@ import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import *
+import config
 
 class TradingBot:
-    def __init__(self, initial_capital=INITIAL_CAPITAL):
+    def __init__(self, initial_capital=config.INITIAL_CAPITAL):
         self.initial_capital = initial_capital
         self.capital = initial_capital
         self.positions = {}
@@ -27,19 +27,19 @@ class TradingBot:
         
     def calculate_position_size(self, price):
         """Calculate position size based on risk management rules"""
-        max_position_value = self.capital * MAX_POSITION_SIZE
+        max_position_value = self.capital * config.MAX_POSITION_SIZE
         return min(max_position_value / price, self.capital / price)
     
     def execute_trade(self, symbol, price, action, size, timestamp, strategy):
         """Execute a trade and update positions with enhanced risk management"""
         # Check volume threshold
         if 'volume_ma_ratio' in self.data[symbol]:
-            if self.data[symbol]['volume_ma_ratio'].iloc[-1] < MIN_VOL_THRESHOLD:
+            if self.data[symbol]['volume_ma_ratio'].iloc[-1] < config.MIN_VOL_THRESHOLD:
                 return False
 
         if action == 'BUY':
             # Check position limits
-            if len(self.positions) >= MAX_HOLDINGS:
+            if len(self.positions) >= config.MAX_HOLDINGS:
                 return False
                 
             # Check if we have enough capital
@@ -50,7 +50,7 @@ class TradingBot:
             # Check expected profit potential
             if 'atr' in self.data[symbol]:
                 expected_profit = (self.data[symbol]['atr'].iloc[-1] / price)
-                if expected_profit < MIN_PROFIT_THRESHOLD:
+                if expected_profit < config.MIN_PROFIT_THRESHOLD:
                     return False
                 
             self.capital -= cost
@@ -64,8 +64,8 @@ class TradingBot:
                 self.positions[symbol] = {
                     'size': size,
                     'avg_price': price,
-                    'stop_loss': price * (1 - STOP_LOSS_PCT),
-                    'take_profit': price * (1 + TAKE_PROFIT_PCT),
+                    'stop_loss': price * (1 - config.STOP_LOSS_PCT),
+                    'take_profit': price * (1 + config.TAKE_PROFIT_PCT),
                     'entry_time': timestamp
                 }
                 
@@ -118,8 +118,8 @@ class TradingBot:
                 
         return False
         
-    def moving_average_strategy(self, data):
-        """Enhanced Moving Average Crossover Strategy with RSI Filter"""
+    def moving_average_strategy(self, data, ml_predictions=None):
+        """Enhanced Moving Average Crossover Strategy with RSI Filter and optional ML confirmation."""
         signals = pd.DataFrame(index=data.index)
         signals['signal'] = 0
         
@@ -128,44 +128,48 @@ class TradingBot:
         ma_crossunder = (data['sma_20'] < data['sma_50']).astype(int)
         
         # RSI Filter
-        rsi_oversold = (data['rsi'] < 30).astype(int)
-        rsi_overbought = (data['rsi'] > 70).astype(int)
+        rsi_oversold = (data['rsi'] < config.MA_RSI_OVERSOLD).astype(int)
+        rsi_overbought = (data['rsi'] > config.MA_RSI_OVERBOUGHT).astype(int)
         
         # Momentum Filter
         momentum_filter = (data['momentum_5d'] * data['momentum_1d'] > 0).astype(int)
         
-        # Generate signals
-        signals['signal'] = np.where(
+        # Define base buy and sell conditions
+        buy_conditions = (
             (ma_crossover & rsi_oversold & momentum_filter) | 
-            (data['close'] < data['bbands_lower']), 1, 
-            np.where(
-                (ma_crossunder & rsi_overbought) |
-                (data['close'] > data['bbands_upper']), -1, 0
-            )
+            (data['close'] < data['bbands_lower'])
+        )
+        sell_conditions = (
+            (ma_crossunder & rsi_overbought) |
+            (data['close'] > data['bbands_upper'])
         )
         
+        # Integrate ML predictions if available
+        if ml_predictions is not None:
+            buy_conditions &= (ml_predictions == 1)
+            sell_conditions &= (ml_predictions == 0) # Assuming 0 is a hold/sell signal
+
+        # Generate signals
+        signals['signal'] = np.where(buy_conditions, 1, np.where(sell_conditions, -1, 0))
+
         # Only get signal changes and filter out weak signals
         signals['position'] = signals['signal'].diff()
         signals.loc[abs(data['atr']) < data['atr'].mean(), 'position'] = 0
         
         return signals
         
-    def rsi_strategy(self, data):
-        """Enhanced RSI Strategy with Multiple Confirmations"""
+    def rsi_strategy(self, data, ml_predictions=None):
+        """Enhanced RSI Strategy with Multiple Confirmations and optional ML integration."""
         signals = pd.DataFrame(index=data.index)
         signals['signal'] = 0
         
-        # Base RSI thresholds - wider range
-        rsi_oversold = 35
-        rsi_overbought = 65
-        
         # Dynamic RSI thresholds based on volatility
-        atr_percentile = data['atr'].rolling(window=20).apply(lambda x: pd.Series(x).rank(pct=True).iloc[-1])
-        rsi_oversold = np.where(atr_percentile > 0.7, 40, 35)  # More conservative in high volatility
-        rsi_overbought = np.where(atr_percentile > 0.7, 60, 65)  # More conservative in high volatility
+        atr_percentile = data['atr'].rolling(window=config.RSI_ATR_WINDOW).apply(lambda x: pd.Series(x).rank(pct=True).iloc[-1])
+        rsi_oversold = np.where(atr_percentile > config.RSI_ATR_PERCENTILE_THRESHOLD, config.RSI_OVERSOLD_VOLATILITY_ADJUSTED, config.RSI_OVERSOLD_BASE)
+        rsi_overbought = np.where(atr_percentile > config.RSI_ATR_PERCENTILE_THRESHOLD, config.RSI_OVERBOUGHT_VOLATILITY_ADJUSTED, config.RSI_OVERBOUGHT_BASE)
         
         # Volume conditions
-        volume_active = data['volume'] > data['volume'].rolling(window=10).mean()
+        volume_active = data['volume'] > data['volume'].rolling(window=config.RSI_VOLUME_WINDOW).mean()
         
         # Trend conditions with momentum
         price_above_ema = data['close'] > data['ema_20']
@@ -174,45 +178,50 @@ class TradingBot:
         
         # Base conditions for entry
         buy_setup = (
-            (data['rsi'] < rsi_oversold) &  # RSI oversold
-            (data['close'] > data['bbands_lower']) &  # Price above lower band
-            volume_active &  # Sufficient volume
-            (data['momentum_1d'] > -0.02)  # Not strong downward momentum
+            (data['rsi'] < rsi_oversold) &
+            (data['close'] > data['bbands_lower']) &
+            volume_active &
+            (data['momentum_1d'] > -config.RSI_MOMENTUM_THRESHOLD)
         )
         
         sell_setup = (
-            (data['rsi'] > rsi_overbought) &  # RSI overbought
-            (data['close'] < data['bbands_upper']) &  # Price below upper band
-            volume_active &  # Sufficient volume
-            (data['momentum_1d'] < 0.02)  # Not strong upward momentum
+            (data['rsi'] > rsi_overbought) &
+            (data['close'] < data['bbands_upper']) &
+            volume_active &
+            (data['momentum_1d'] < config.RSI_MOMENTUM_THRESHOLD)
         )
         
         # Entry conditions with trend and momentum confirmation
-        buy_setup = buy_setup & (
-            (price_above_ema & momentum_positive) |  # Trend following setup
-            (macd_signal & data['rsi'].rolling(window=2).mean() < 40)  # Counter-trend setup
+        buy_setup &= (
+            (price_above_ema & momentum_positive) |
+            (macd_signal & data['rsi'].rolling(window=config.RSI_COUNTER_TREND_WINDOW).mean() < config.RSI_COUNTER_TREND_OVERSOLD)
         )
         
-        sell_setup = sell_setup & (
-            (~price_above_ema & ~momentum_positive) |  # Trend following setup
-            (~macd_signal & data['rsi'].rolling(window=2).mean() > 60)  # Counter-trend setup
+        sell_setup &= (
+            (~price_above_ema & ~momentum_positive) |
+            (~macd_signal & data['rsi'].rolling(window=config.RSI_COUNTER_TREND_WINDOW).mean() > config.RSI_COUNTER_TREND_OVERBOUGHT)
         )
         
+        # Integrate ML predictions if available
+        if ml_predictions is not None:
+            buy_setup &= (ml_predictions == 1)
+            sell_setup &= (ml_predictions == 0)
+
         # Generate base signals
         signals.loc[buy_setup, 'signal'] = 1
         signals.loc[sell_setup, 'signal'] = -1
         
         # Process exit signals
         long_exit = (
-            (data['rsi'] > 60) |  # RSI getting high
-            (data['close'] < data['sma_20']) |  # Price below short MA
-            (data['momentum_1d'] < 0)  # Short-term momentum negative
+            (data['rsi'] > config.RSI_EXIT_LONG) |
+            (data['close'] < data['sma_20']) |
+            (data['momentum_1d'] < 0)
         )
         
         short_exit = (
-            (data['rsi'] < 40) |  # RSI getting low
-            (data['close'] > data['sma_20']) |  # Price above short MA
-            (data['momentum_1d'] > 0)  # Short-term momentum positive
+            (data['rsi'] < config.RSI_EXIT_SHORT) |
+            (data['close'] > data['sma_20']) |
+            (data['momentum_1d'] > 0)
         )
         
         # Apply exit signals
@@ -223,28 +232,33 @@ class TradingBot:
         signals['position'] = signals['signal'].diff()
         
         # Filter out weak signals
-        signals.loc[abs(data['atr']) < data['atr'].mean() * 0.5, 'position'] = 0
+        signals.loc[abs(data['atr']) < data['atr'].mean() * config.RSI_ATR_FILTER_FACTOR, 'position'] = 0
         
         return signals
         
-    def momentum_strategy(self, data):
-        """Price Momentum Strategy"""
+    def momentum_strategy(self, data, ml_predictions=None):
+        """Price Momentum Strategy with optional ML confirmation."""
         signals = pd.DataFrame(index=data.index)
         signals['signal'] = 0
         
-        # Buy when momentum is positive and increasing
-        signals.loc[(data['momentum_5d'] > 0) & 
-                   (data['momentum_1d'] > data['momentum_5d']), 'signal'] = 1
+        # Define base buy and sell conditions
+        buy_conditions = (data['momentum_5d'] > 0) & (data['momentum_1d'] > data['momentum_5d'])
+        sell_conditions = (data['momentum_5d'] < 0) & (data['momentum_1d'] < data['momentum_5d'])
         
-        # Sell when momentum is negative and decreasing
-        signals.loc[(data['momentum_5d'] < 0) & 
-                   (data['momentum_1d'] < data['momentum_5d']), 'signal'] = -1
+        # Integrate ML predictions if available
+        if ml_predictions is not None:
+            buy_conditions &= (ml_predictions == 1)
+            sell_conditions &= (ml_predictions == 0)
+
+        # Apply signals
+        signals.loc[buy_conditions, 'signal'] = 1
+        signals.loc[sell_conditions, 'signal'] = -1
         
         signals['position'] = signals['signal'].diff()
         
         return signals
         
-    def run_strategy(self, data, strategy='moving_average'):
+    def run_strategy(self, data, strategy='moving_average', ml_predictions=None):
         """Run specified trading strategy"""
         if not isinstance(data, pd.DataFrame):
             print(f"Warning: Invalid data format for strategy execution")
@@ -255,11 +269,11 @@ class TradingBot:
         
         # Generate signals based on strategy
         if strategy == 'moving_average':
-            signals = self.moving_average_strategy(data)
+            signals = self.moving_average_strategy(data, ml_predictions)
         elif strategy == 'rsi':
-            signals = self.rsi_strategy(data)
+            signals = self.rsi_strategy(data, ml_predictions)
         elif strategy == 'momentum':
-            signals = self.momentum_strategy(data)
+            signals = self.momentum_strategy(data, ml_predictions)
         else:
             raise ValueError(f"Unknown strategy: {strategy}")
             

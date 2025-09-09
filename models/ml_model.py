@@ -181,7 +181,7 @@ class MLModel:
         """Find optimal hyperparameters using grid search"""
         # Scale features
         X_scaled = self.scaler.fit_transform(X)
-        X_df = pd.DataFrame(X_scaled, columns=X.cols)
+        X_df = pd.DataFrame(X_scaled, columns=X.columns)
         
         # Use selected features if available
         if self.selected_features is not None:
@@ -202,6 +202,14 @@ class MLModel:
         self.best_params = grid_search.best_params_
         self.model = grid_search.best_estimator_
         
+        # Save feature importance from the best model found by GridSearchCV
+        if hasattr(self.model, 'feature_importances_'):
+            features = self.selected_features if self.selected_features is not None else X.columns
+            self.feature_importance = pd.DataFrame({
+                'feature': features,
+                'importance': self.model.feature_importances_
+            }).sort_values('importance', ascending=False)
+
         return {
             'best_params': self.best_params,
             'best_score': grid_search.best_score_
