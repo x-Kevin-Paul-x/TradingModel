@@ -17,6 +17,18 @@ MEtrad is a algorithmic trading simulation that combines machine learning with t
 - [Performance Metrics](#performance-metrics)
 - [Contributing](#contributing)
 
+## Interactive Dashboard
+
+MEtrad now includes an interactive web-based dashboard built with Streamlit. This dashboard allows you to run trading simulations with custom parameters and visualize the results in real-time.
+
+![MEtrad Dashboard](images/dashboard.png)
+
+### Dashboard Features:
+- **Interactive Controls:** Select stock symbols, and date ranges for your simulations.
+- **Real-time Simulation:** Run the trading bot directly from the dashboard.
+- **Rich Visualizations:** View portfolio growth, candlestick charts with trade signals, and performance metrics.
+- **Toggleable Theme:** Switch between dark and light modes for comfortable viewing.
+
 ## Overview
 
 MEtrad is designed to help traders and investors make data-driven decisions in the stock market. By combining cutting-edge machine learning techniques with established technical analysis indicators, the system generates actionable buy and sell signals. The integrated trading bot executes these signals while implementing comprehensive risk management strategies to protect your portfolio. The system's performance is continuously evaluated using industry-standard metrics like total return, Sharpe ratio, and maximum drawdown.
@@ -85,20 +97,27 @@ MEtrad is designed to help traders and investors make data-driven decisions in t
 
 ## Using MEtrad
 
-Run the trading simulation with a single command:
+You can run MEtrad in two ways: through the interactive dashboard or via the command line for a quick simulation.
+
+### Interactive Dashboard
+
+To launch the interactive dashboard, run the following command:
+
+```bash
+streamlit run app.py
+```
+
+This will open a new tab in your browser with the MEtrad dashboard. From there, you can configure your simulation parameters and visualize the results.
+
+### Command-Line Simulation
+
+For a non-interactive simulation that uses the default parameters from `config.py`, run:
 
 ```bash
 python run.py
 ```
 
-This initiates the complete workflow:
-1. Data acquisition and preprocessing
-2. Feature engineering and technical indicator calculation
-3. Model training and validation
-4. Strategy backtesting and comparison
-5. Performance visualization and reporting
-
-Detailed results including total returns, Sharpe ratio, and win rates are provided at the end of the simulation.
+This will run the complete simulation in your terminal and print the final performance metrics.
 
 ## Trading Strategies
 
