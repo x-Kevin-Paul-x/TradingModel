@@ -1,5 +1,6 @@
 import streamlit as st
 from datetime import date, timedelta
+import time
 
 # --- Page Config ---
 st.set_page_config(
@@ -9,74 +10,74 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- Theme Toggle ---
-# This is a workaround for dynamic theme switching in Streamlit.
-# It uses session state and injects custom CSS.
+# --- Theme ---
 if "theme" not in st.session_state:
     st.session_state.theme = "dark"
 
-# CSS for the themes
-light_theme_css = """
-<style>
-    html, body, [class*="st-"], .st-emotion-cache-18ni7ap {
-        background-color: #FFFFFF;
-        color: #000000;
-    }
-    div[data-testid="stSidebar"] {
-        background-color: #F0F2F6;
-    }
-    h1, h2, h3, h4, h5, h6 {
-        color: #000000;
-    }
-    .stButton>button {
-        color: #4F8BF9;
-        border-color: #4F8BF9;
-    }
-    div[data-testid="stMetric"], div[data-testid="stMetricLabel"] {
-        color: #000000;
-    }
-</style>
-"""
-
 dark_theme_css = """
 <style>
+    /* Base */
     html, body, [class*="st-"], .st-emotion-cache-18ni7ap {
-        background-color: #0E1117;
-        color: #FFFFFF;
+        background-color: #0d1117;
+        color: #c9d1d9;
     }
+    /* Sidebar */
     div[data-testid="stSidebar"] {
-        background-color: #262730;
+        background-color: #161b22;
     }
+    /* Headings */
     h1, h2, h3, h4, h5, h6 {
-        color: #FFFFFF;
+        color: #c9d1d9;
     }
+    /* Buttons */
     .stButton>button {
-        color: #ff4b4b;
-        border-color: #ff4b4b;
+        color: #58a6ff;
+        border: 1px solid #58a6ff;
+        background-color: transparent;
     }
-    div[data-testid="stMetric"], div[data-testid="stMetricLabel"] {
-        color: #FFFFFF;
+    .stButton>button:hover {
+        background-color: rgba(88, 166, 255, 0.1);
+    }
+    /* Metrics */
+    div[data-testid="stMetric"] {
+        background-color: #161b22;
+        border-radius: 8px;
+        padding: 15px;
+    }
+    div[data-testid="stMetricLabel"] {
+        color: #8b949e;
+    }
+    /* Expander */
+    .st-emotion-cache-1h9usn1 {
+        background-color: #161b22;
+        border: 1px solid #30363d;
+        border-radius: 8px;
     }
 </style>
 """
 
-# Apply the selected theme
-theme_css = dark_theme_css if st.session_state.theme == "dark" else light_theme_css
-st.markdown(theme_css, unsafe_allow_html=True)
-
+# Only dark theme is applied as per the new design.
+st.markdown(dark_theme_css, unsafe_allow_html=True)
 
 # --- UI Layout ---
-st.title("📈 MEtrad Trading Dashboard")
+# Header
+col1, col2 = st.columns([1, 10])
+with col1:
+    st.image("https://emojicdn.elk.sh/📈", width=60)
+with col2:
+    st.title("MEtrad Trading Dashboard")
 
+
+# Sidebar
 with st.sidebar:
     st.header("Settings")
-    if st.button("Toggle Theme"):
-        st.session_state.theme = "light" if st.session_state.theme == "dark" else "dark"
-        # A little hack to force a rerun on button click to apply the theme
-        st.rerun()
+    if st.button("Toggle Theme", help="Theme is currently locked to dark for this design."):
+        # Theme toggle is disabled to match the single design
+        st.toast("Theme is locked to dark mode.", icon="🎨")
 
+    st.markdown("---")
     st.header("Controls")
-    symbols_input = st.text_input("Stock Symbol(s)", "AAPL,GOOG", help="Enter comma-separated stock symbols")
+    symbols_input = st.text_input("Stock(s)", "AAPL,GOOG", help="Enter comma-separated stock symbols, e.g., AAPL,GOOG")
 
     today = date.today()
     one_year_ago = today - timedelta(days=365)
@@ -84,18 +85,31 @@ with st.sidebar:
     start_date_input = st.date_input("Start Date", one_year_ago)
     end_date_input = st.date_input("End Date", today)
 
-    if st.button("Run Simulation"):
+    st.markdown("---")
+    if st.button("Run Simulation", use_container_width=True):
         st.session_state.run_simulation = True
-        st.session_state.symbols = [s.strip() for s in symbols_input.split(',')]
+        st.session_state.symbols = [s.strip().upper() for s in symbols_input.split(',')]
         st.session_state.start_date = start_date_input
         st.session_state.end_date = end_date_input
 
+# --- Main Content ---
 st.header("Simulation Results")
+
+# Simulation Log Expander
+log_expander = st.expander("Simulation Log", expanded=True)
 
 if 'run_simulation' in st.session_state and st.session_state.run_simulation:
     from simulation_runner import run_simulation
 
+    log_expander.info("Starting simulation...")
+    progress_bar = log_expander.progress(0)
+
     with st.spinner("Running simulation... This may take a few minutes."):
+        # Simulate progress
+        for i in range(100):
+            time.sleep(0.02) # Simulate work
+            progress_bar.progress(i + 1)
+
         results = run_simulation(
             st.session_state.symbols,
             st.session_state.start_date.strftime("%Y-%m-%d"),
@@ -103,14 +117,17 @@ if 'run_simulation' in st.session_state and st.session_state.run_simulation:
         )
         st.session_state.results = results
         st.session_state.run_simulation = False
+        log_expander.success("Simulation completed!")
 
 if 'results' in st.session_state and st.session_state.results:
-    st.success("Simulation complete!")
+    if not ('run_simulation' in st.session_state and st.session_state.run_simulation):
+        log_expander.success("Simulation complete!")
 
     results = st.session_state.results
     bot_metrics = results['bot_metrics']
 
-    # Display metrics
+    # --- Key Performance Metrics ---
+    st.markdown("---")
     st.header("Key Performance Metrics")
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Total Return", f"{bot_metrics['total_return']*100:.2f}%")
@@ -118,7 +135,8 @@ if 'results' in st.session_state and st.session_state.results:
     col3.metric("Max Drawdown", f"{bot_metrics['max_drawdown']*100:.2f}%")
     col4.metric("Winning Trades", f"{bot_metrics['winning_trades']}/{bot_metrics['total_trades']}")
 
-    # Display charts
+    # --- Visualizations ---
+    st.markdown("---")
     st.header("Visualizations")
 
     from utils.visualization import VisualizationUtils
@@ -128,26 +146,28 @@ if 'results' in st.session_state and st.session_state.results:
     for symbol in results['test_data']:
         st.subheader(f"Results for {symbol}")
 
-        # Candlestick chart
         candlestick_fig = visualizer.plot_trading_performance(
             results['test_data'][symbol],
             results['trading_bot'].trades_history
         )
         st.plotly_chart(candlestick_fig, use_container_width=True)
 
-        # Portfolio value
-        portfolio_fig = visualizer.plot_portfolio_value(results['trading_bot'].trades_history)
-        st.pyplot(portfolio_fig)
-
-    # Other plots
     st.subheader("Overall Performance")
-    feature_importance_fig = visualizer.plot_feature_importance(results['ml_model'].get_top_features())
-    st.pyplot(feature_importance_fig)
 
-    returns_dist_fig = visualizer.plot_returns_distribution(results['trading_bot'].trades_history)
-    st.pyplot(returns_dist_fig)
+    # Portfolio value
+    portfolio_fig = visualizer.plot_portfolio_value(results['trading_bot'].trades_history)
+    st.plotly_chart(portfolio_fig, use_container_width=True)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        feature_importance_fig = visualizer.plot_feature_importance(results['ml_model'].get_top_features())
+        st.plotly_chart(feature_importance_fig, use_container_width=True)
+
+    with col2:
+        returns_dist_fig = visualizer.plot_returns_distribution(results['trading_bot'].trades_history)
+        st.plotly_chart(returns_dist_fig, use_container_width=True)
 
 else:
-    st.write("Click 'Run Simulation' to see the results.")
+    log_expander.write("Click 'Run Simulation' to see the results.")
 
-st.info("Please configure your Polygon API key in a `.env` file in the project root to run the simulation.", icon="ℹ️")
+st.sidebar.info("Please configure your Polygon API key in a `.env` file in the project root to run the simulation.", icon="ℹ️")
