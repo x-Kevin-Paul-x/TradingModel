@@ -41,7 +41,6 @@ class MLModel:
                 'subsample': 0.8,
                 'colsample_bytree': 0.8,
                 'random_state': RANDOM_STATE,
-                'use_label_encoder': False,
                 'eval_metric': 'logloss'
             }
             # Update defaults with provided params
