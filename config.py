@@ -21,8 +21,8 @@ TRAINING_END_DATE = TEST_START_DATE
 TEST_END_DATE = END_DATE
 
 # Trading Configuration
-INITIAL_CAPITAL = 100
-TRADING_SYMBOLS = ["AAPL", "GOOGL", "MSFT", "AMZN", "META"]  # Example symbols
+INITIAL_CAPITAL = 100000
+TRADING_SYMBOLS = ["AAPL", "GOOGL"]
 TIMEFRAME = "1d"  # Daily timeframe
 
 # ML Model Configuration
@@ -36,8 +36,8 @@ TAKE_PROFIT_PCT = 0.06  # 6% take profit
 MAX_POSITION_SIZE = 0.15  # Maximum 15% of portfolio in single position
 
 # Additional Trading Parameters
-MIN_VOL_THRESHOLD = 0.8  # Minimum volume ratio threshold - stricter volume requirement
-MIN_PROFIT_THRESHOLD = 0.003  # Minimum expected profit threshold (0.3%)
+MIN_VOL_THRESHOLD = 0.7  # Minimum volume ratio threshold - stricter volume requirement
+MIN_PROFIT_THRESHOLD = 0.002  # Minimum expected profit threshold (0.3%)
 MAX_HOLDINGS = 2  # Maximum number of simultaneous positions - more concentrated
 
 # ML Model Hyperparameter Grid for XGBoost (a small grid for efficient tuning)
@@ -54,8 +54,8 @@ MA_RSI_OVERSOLD = 30
 MA_RSI_OVERBOUGHT = 70
 
 # RSI Strategy
-RSI_OVERSOLD_BASE = 30
-RSI_OVERBOUGHT_BASE = 65
+RSI_OVERSOLD_BASE = 40
+RSI_OVERBOUGHT_BASE = 60
 RSI_ATR_WINDOW = 20
 RSI_ATR_PERCENTILE_THRESHOLD = 0.7
 RSI_OVERSOLD_VOLATILITY_ADJUSTED = 40

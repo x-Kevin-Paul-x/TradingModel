@@ -179,16 +179,12 @@ class TradingBot:
         # Base conditions for entry
         buy_setup = (
             (data['rsi'] < rsi_oversold) &
-            (data['close'] > data['bbands_lower']) &
-            volume_active &
-            (data['momentum_1d'] > -config.RSI_MOMENTUM_THRESHOLD)
+            (data['close'] > data['bbands_lower'])
         )
         
         sell_setup = (
             (data['rsi'] > rsi_overbought) &
-            (data['close'] < data['bbands_upper']) &
-            volume_active &
-            (data['momentum_1d'] < config.RSI_MOMENTUM_THRESHOLD)
+            (data['close'] < data['bbands_upper'])
         )
         
         # Entry conditions with trend and momentum confirmation
